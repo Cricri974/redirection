@@ -1,11 +1,16 @@
 import express from "express";
 import fetch from "node-fetch";
-import dotenv from "dotenv";
-dotenv.config();
+
+// Pas besoin de dotenv sur Render, seulement en local développement
+if (process.env.NODE_ENV !== "production") {
+  const dotenv = await import('dotenv');
+  dotenv.config();
+}
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Ces variables sont à définir dans l'onglet "Environment" sur Render
 const SHOP = process.env.SHOPIFY_SHOP;
 const ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_TOKEN;
 
