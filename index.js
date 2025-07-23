@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import fetch from "node-fetch";
 
+// Charge dotenv uniquement en dev local (inutile sur Render)
 if (process.env.NODE_ENV !== "production") {
   const dotenv = await import('dotenv');
   dotenv.config();
@@ -10,7 +11,7 @@ if (process.env.NODE_ENV !== "production") {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Autorise le CORS depuis ton domaine Shopify (à sécuriser en prod)
+// Autorise le CORS depuis ton domaine Shopify (sécurise en prod !)
 app.use(cors({
   origin: "https://decathlon.re"
 }));
@@ -40,17 +41,19 @@ app.get("/find-product", async (req, res) => {
         },
         body: JSON.stringify({
           query: `
-            query {
-              productVariants(first: 1, query: "option:Model Code:'${modelCode}'") {
+            query($modelCode: String!) {
+              productVariants(first: 1, query: $modelCode) {
                 edges {
                   node {
                     id
+                    sku
                     product { handle }
                   }
                 }
               }
             }
           `,
+          variables: { modelCode }
         }),
       }
     );
@@ -58,11 +61,15 @@ app.get("/find-product", async (req, res) => {
     const data = await response.json();
     const variant = data.data?.productVariants?.edges[0]?.node;
 
+    // Debug console (désactive si besoin en prod)
+    console.log('Code modèle reçu:', modelCode);
+    console.log('Produit retourné:', variant?.product?.handle, 'Variant ID:', variant?.id);
+
     if (variant) {
       res.json({
         handle: variant.product.handle,
         variantId: variant.id,
-        url: `https://${SHOP.replace('.myshopify.com', '')}/products/${variant.product.handle}?variant=${variant.id.split("/").pop()}`
+        url: `https://decathlon.re/products/${variant.product.handle}?variant=${variant.id.split("/").pop()}`
       });
     } else {
       res.status(404).json({ error: "No variant found for this Model Code" });
