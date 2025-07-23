@@ -1,7 +1,7 @@
 import express from "express";
+import cors from "cors";
 import fetch from "node-fetch";
 
-// Pas besoin de dotenv sur Render, seulement en local développement
 if (process.env.NODE_ENV !== "production") {
   const dotenv = await import('dotenv');
   dotenv.config();
@@ -10,7 +10,11 @@ if (process.env.NODE_ENV !== "production") {
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-// Ces variables sont à définir dans l'onglet "Environment" sur Render
+// Autorise le CORS depuis ton domaine Shopify (à sécuriser en prod)
+app.use(cors({
+  origin: "https://decathlon.re"
+}));
+
 const SHOP = process.env.SHOPIFY_SHOP;
 const ADMIN_TOKEN = process.env.SHOPIFY_ADMIN_TOKEN;
 
